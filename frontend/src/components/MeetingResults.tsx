@@ -82,6 +82,16 @@ export default function MeetingResults({ meeting, onReset }: Props) {
 
       </div>
 
+      {/* Export PDF Button */}
+      <a
+        href={`http://localhost:8000/api/meetings/${meeting.id}/export-pdf`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all text-sm flex items-center justify-center gap-2"
+      >
+        📄 Export PDF
+      </a>
+
       {/* New Meeting Button */}
       <button
         onClick={onReset}
