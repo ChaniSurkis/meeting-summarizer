@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from database import Meeting, get_db
 from services.whisper import transcribe_audio
 from services.summarizer import summarize_transcript
+from fastapi.responses import Response
+from services.pdf_export import generate_meeting_pdf
 import shutil
 import os
 import uuid
@@ -102,3 +104,28 @@ async def get_all_meetings(db: Session = Depends(get_db)):
         }
         for m in meetings
     ]
+
+
+@router.get("/{meeting_id}/export-pdf")
+async def export_pdf(meeting_id: str, db: Session = Depends(get_db)):
+    """Export meeting as PDF"""
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+    
+    if not meeting:
+        return {"error": "Meeting not found"}
+    
+    if meeting.status != "done":
+        return {"error": "Meeting is not ready yet"}
+    
+    # Generate PDF
+    pdf_bytes = generate_meeting_pdf({
+        "filename": meeting.filename,
+        "transcript": meeting.transcript,
+        "summary": meeting.summary
+    })
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=meeting-{meeting_id[:8]}.pdf"}
+    )
