@@ -4,6 +4,7 @@ import { uploadAudio, getMeeting } from './api/meetings';
 import UploadZone from './components/UploadZone';
 import StatusCard from './components/StatusCard';
 import MeetingResults from './components/MeetingResults';
+import SearchBar from './components/SearchBar';
 
 export default function App() {
   const [status, setStatus] = useState<Status>('idle');
@@ -78,6 +79,7 @@ export default function App() {
         {status === 'done' && meeting && (
           <MeetingResults meeting={meeting} onReset={handleReset} />
         )}
+        <SearchBar />
       </main>
     </div>
   );
