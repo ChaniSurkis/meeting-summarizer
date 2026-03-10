@@ -6,6 +6,7 @@ from services.summarizer import summarize_transcript
 from services.rag import index_meeting, search_meetings
 from fastapi.responses import Response
 from services.pdf_export import generate_meeting_pdf
+from services.rag import index_meeting, search_meetings
 import shutil
 import os
 import uuid
@@ -32,6 +33,8 @@ def process_audio(meeting_id: str, file_path: str):
         meeting.summary = summary
         meeting.status = "done"
         db.commit()
+        # Index in ChromaDB for RAG search
+        index_meeting(str(meeting.id), meeting.filename, transcript)
 
         # Index in ChromaDB for RAG search
         index_meeting(str(meeting.id), meeting.filename, transcript)
@@ -72,14 +75,26 @@ async def upload_audio(
         "status": "pending",
         "message": "Processing started, use GET /meetings/{id} to check status"
     }
-
-
 @router.get("/search")
 async def search(query: str):
     """Search across all meetings using RAG"""
     result = search_meetings(query)
     return {"answer": result}
-
+@router.get("/{meeting_id}")
+async def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
+    """Get meeting results by ID"""
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+    
+    if not meeting:
+        return {"error": "Meeting not found"}
+    
+    return {
+        "id": meeting.id,
+        "filename": meeting.filename,
+        "status": meeting.status,
+        "transcript": meeting.transcript,
+        "summary": meeting.summary
+    }
 
 @router.get("/")
 async def get_all_meetings(db: Session = Depends(get_db)):
