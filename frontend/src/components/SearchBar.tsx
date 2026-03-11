@@ -14,6 +14,7 @@ const handleSearch = async () => {
   setAnswer('');
   try {
     const res = await axios.get(`${API}/meetings/search`, { params: { query } });
+    
     setAnswer(res.data.answer);
   } catch (err) {
     setAnswer('שגיאה בחיפוש — נסי שוב');
