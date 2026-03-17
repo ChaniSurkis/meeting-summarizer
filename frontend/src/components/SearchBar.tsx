@@ -7,7 +7,7 @@ export default function SearchBar() {
   const [query, setQuery] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
-
+  
 const handleSearch = async () => {
   if (!query.trim()) return;
   setLoading(true);

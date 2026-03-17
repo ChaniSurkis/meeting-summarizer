@@ -7,7 +7,6 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B35?style=for-the-badge&logo=databricks&logoColor=white)
 
 ---
 
@@ -15,11 +14,9 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 
 - 🎵 **Audio Upload** — Drag & drop support for MP3, MP4, M4A, WAV files
 - 🗣️ **AI Transcription** — Powered by OpenAI Whisper, supports Hebrew and 99 other languages
-- 📋 **Smart Summarization** — GPT-4o mini generates structured meeting summaries
+- 📋 **Smart Summarization** — GPT-4o generates structured meeting summaries
 - ✅ **Key Points Extraction** — Automatically identifies the most important takeaways
 - 🎯 **Action Items** — Extracts tasks with owners from the conversation
-- 🔍 **RAG Search** — Ask questions across all your meetings using vector search + GPT
-- 📄 **PDF Export** — Download a formatted PDF report of any meeting
 - ⚡ **Async Processing** — Non-blocking background processing with real-time status updates
 - 💾 **Persistent Storage** — All meetings saved to PostgreSQL via Supabase
 
@@ -27,21 +24,20 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 
 ## 🏗️ Architecture
 ```
-┌─────────────────┐     ┌──────────────────────────────────────┐
-│  React Frontend  │────▶│           FastAPI Backend             │
-│  TypeScript      │     │                                      │
-│  Tailwind CSS    │     │  ┌─────────┐    ┌───────────────┐   │
-└─────────────────┘     │  │ Whisper │    │  GPT-4o mini  │   │
-                         │  │   API   │───▶│  + LangChain  │   │
-                         │  └─────────┘    └───────────────┘   │
-                         │                        │             │
-                         │         ┌──────────────┤             │
-                         │         ▼              ▼             │
-                         │  ┌────────────┐  ┌──────────┐       │
-                         │  │ PostgreSQL  │  │ ChromaDB │       │
-                         │  │ (Supabase) │  │ Vectors  │       │
-                         │  └────────────┘  └──────────┘       │
-                         └──────────────────────────────────────┘
+┌─────────────────┐     ┌──────────────────────────────────┐
+│   React Frontend │────▶│         FastAPI Backend           │
+│  TypeScript      │     │                                  │
+│  Tailwind CSS    │     │  ┌─────────┐    ┌─────────────┐ │
+└─────────────────┘     │  │ Whisper │    │   GPT-4o    │ │
+                         │  │   API   │───▶│    mini     │ │
+                         │  └─────────┘    └─────────────┘ │
+                         │         │                        │
+                         │         ▼                        │
+                         │  ┌─────────────┐                 │
+                         │  │  PostgreSQL  │                 │
+                         │  │  (Supabase) │                 │
+                         │  └─────────────┘                 │
+                         └──────────────────────────────────┘
 ```
 
 ---
@@ -54,8 +50,6 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 | Backend | FastAPI, Python 3.10 |
 | AI - Speech to Text | OpenAI Whisper API |
 | AI - Summarization | OpenAI GPT-4o mini + LangChain |
-| AI - Search | RAG with ChromaDB + OpenAI Embeddings |
-| PDF Export | ReportLab |
 | Database | PostgreSQL (Supabase) |
 | ORM | SQLAlchemy |
 
@@ -74,7 +68,7 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 cd backend
 python -m venv venv
 venv\Scripts\activate  # Windows
-pip install fastapi uvicorn openai sqlalchemy psycopg2-binary python-dotenv python-multipart reportlab chromadb langchain langchain-openai langchain-community langchain-core
+pip install fastapi uvicorn openai sqlalchemy psycopg2-binary python-dotenv python-multipart
 ```
 
 Create `.env` file:
@@ -102,9 +96,7 @@ npm start
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/meetings/upload-audio` | Upload audio file for processing |
-| `GET` | `/api/meetings/search?query=...` | RAG search across all meetings |
 | `GET` | `/api/meetings/{id}` | Get meeting results by ID |
-| `GET` | `/api/meetings/{id}/export-pdf` | Download meeting as PDF |
 | `GET` | `/api/meetings` | List all meetings |
 
 ---
@@ -116,26 +108,8 @@ npm start
 3. Background task sends audio to **Whisper API** for transcription
 4. Transcript is sent to **GPT-4o mini** with a structured prompt
 5. Results (summary, key points, action items) are saved to **PostgreSQL**
-6. Transcript is chunked and indexed in **ChromaDB** as vector embeddings
-7. Frontend polls every 2 seconds until status is `done`
-8. Results are displayed in a clean tabbed interface
-9. User can **export to PDF** or **search across all meetings** using natural language
-
----
-
-## 🔍 RAG Search
-
-The semantic search feature uses **Retrieval Augmented Generation**:
-
-1. User types a question in natural language
-2. Question is converted to a vector embedding via OpenAI
-3. ChromaDB finds the most relevant transcript chunks
-4. GPT-4o mini answers based on the retrieved context
-
-This means you can ask questions like:
-- *"What decisions were made about the product launch?"*
-- *"Who is responsible for the marketing tasks?"*
-- *"What did we discuss about the budget?"*
+6. Frontend polls every 2 seconds until status is `done`
+7. Results are displayed in a clean tabbed interface
 
 ---
 
@@ -143,41 +117,35 @@ This means you can ask questions like:
 ```
 meeting-summarizer/
 ├── backend/
-│   ├── main.py               # FastAPI app & CORS
-│   ├── database.py           # SQLAlchemy models & DB connection
+│   ├── main.py              # FastAPI app & CORS
+│   ├── database.py          # SQLAlchemy models & DB connection
 │   ├── routers/
-│   │   └── meetings.py       # All API endpoints
+│   │   └── meetings.py      # API endpoints
 │   └── services/
-│       ├── whisper.py        # Audio transcription
-│       ├── summarizer.py     # GPT summarization
-│       ├── rag.py            # ChromaDB vector search
-│       └── pdf_export.py     # PDF generation
+│       ├── whisper.py       # Audio transcription
+│       └── summarizer.py    # GPT summarization
 └── frontend/
     └── src/
-        ├── App.tsx            # Main app component
+        ├── App.tsx           # Main app component
         ├── api/
-        │   └── meetings.ts    # API calls
+        │   └── meetings.ts   # API calls
         ├── components/
         │   ├── UploadZone.tsx
         │   ├── StatusCard.tsx
-        │   ├── MeetingResults.tsx
-        │   └── SearchBar.tsx
+        │   └── MeetingResults.tsx
         └── types/
-            └── meeting.ts     # TypeScript interfaces
+            └── meeting.ts    # TypeScript interfaces
 ```
 
 ---
 
 ## 🔮 Roadmap
 
-- [x] Audio transcription with Whisper
-- [x] AI summarization with GPT-4o mini
-- [x] PDF export
-- [x] RAG semantic search
 - [ ] Speaker diarization (identify different speakers)
+- [ ] Semantic search across all meetings
 - [ ] Slack / Teams integration
+- [ ] Export to PDF
 - [ ] Multi-language support UI
-- [ ] Deploy to production
 
 ---
 
