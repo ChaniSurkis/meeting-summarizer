@@ -12,7 +12,7 @@ An AI-powered meeting intelligence platform that transforms audio recordings int
 
 ## ✨ Features
 
-- 🎵 **Audio Upload** — Drag & drop support for MP3, MP4, M4A, WAV files
+- 🎤 **Audio Upload** — Drag & drop support for MP3, MP4, M4A, WAV files
 - 🗣️ **AI Transcription** — Powered by OpenAI Whisper, supports Hebrew and 99 other languages
 - 📋 **Smart Summarization** — GPT-4o generates structured meeting summaries
 - ✅ **Key Points Extraction** — Automatically identifies the most important takeaways
